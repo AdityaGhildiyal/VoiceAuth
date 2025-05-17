@@ -33,42 +33,161 @@ class VoiceAuthApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Voice Authentication System")
-        self.root.geometry("800x700")
+        self.root.geometry("900x750")
         self.root.resizable(False, False)
 
-        # GUI Elements (Dark Theme)
-        self.label = ttk.Label(root, text="Voice Authentication System", font=("Arial", 18, "bold"), bootstyle="light")
-        self.label.pack(pady=15)
+        # Main container
+        self.main_frame = ttk.Frame(root, padding=20, bootstyle="dark")
+        self.main_frame.pack(fill="both", expand=True)
 
-        self.status_text = ScrolledText(root, height=18, width=80, font=("Arial", 10), wrap="word",
-                                      bootstyle="dark", padding=5)
-        self.status_text.pack(pady=15)
-        self.status_text.text.insert("end", "Welcome! Click 'Setup' to configure or 'Authenticate' to unlock.\n")
-        self.status_text.text.bind("<Key>", lambda e: "break")  # Prevent typing
+        # Header
+        self.header_label = ttk.Label(
+            self.main_frame,
+            text="🔒 Voice Authentication System",
+            font=("Helvetica", 22, "bold"),
+            bootstyle="light"
+        )
+        self.header_label.pack(pady=(10, 20))
 
-        self.progress_bar = ttk.Progressbar(root, bootstyle="primary", mode="determinate", length=300)
-        self.progress_bar.pack(pady=10)
-        self.progress_bar.pack_forget()  # Hide initially
+        # Tabbed interface
+        self.notebook = ttk.Notebook(self.main_frame, bootstyle="primary")
+        self.notebook.pack(fill="both", expand=True, pady=10)
 
-        self.setup_button = ttk.Button(root, text="Setup", command=self.start_setup, bootstyle="primary", width=15)
+        # Setup tab
+        self.setup_tab = ttk.Frame(self.notebook, padding=15)
+        self.notebook.add(self.setup_tab, text="Setup")
+
+        # Authenticate tab
+        self.auth_tab = ttk.Frame(self.notebook, padding=15)
+        self.notebook.add(self.auth_tab, text="Authenticate")
+
+        # Security tab
+        self.security_tab = ttk.Frame(self.notebook, padding=15)
+        self.notebook.add(self.security_tab, text="Security")
+
+        # Setup tab content
+        self.setup_button = ttk.Button(
+            self.setup_tab,
+            text=" Start Setup",
+            command=self.start_setup,
+            bootstyle="primary-outline",
+            width=20,
+            compound="left"
+        )
         self.setup_button.pack(pady=10)
 
-        self.auth_button = ttk.Button(root, text="Authenticate", command=self.start_authentication, bootstyle="primary", width=15)
+        self.setup_progress = ttk.Progressbar(
+            self.setup_tab,
+            bootstyle="primary-striped",
+            mode="determinate",
+            length=400
+        )
+        self.setup_progress.pack(pady=10)
+        self.setup_progress.pack_forget()
+
+        self.setup_status_label = ttk.Label(
+            self.setup_tab,
+            text="Setup Status",
+            font=("Helvetica", 14, "bold"),
+            bootstyle="light"
+        )
+        self.setup_status_label.pack(pady=(10, 5))
+
+        self.setup_status_text = ScrolledText(
+            self.setup_tab,
+            height=10,
+            width=80,
+            font=("Consolas", 10),
+            wrap="word",
+            bootstyle="dark",
+            padding=10
+        )
+        self.setup_status_text.pack(pady=10)
+        self.setup_status_text.text.insert("end", "Click 'Start Setup' to configure voice and phrase.\n")
+        self.setup_status_text.text.bind("<Key>", lambda e: "break")
+
+        # Authenticate tab content
+        self.auth_button = ttk.Button(
+            self.auth_tab,
+            text=" Start Authentication",
+            command=self.start_authentication,
+            bootstyle="success-outline",
+            width=20,
+            compound="left"
+        )
         self.auth_button.pack(pady=10)
 
-        self.image_label = ttk.Label(root, text="Intruder Photo (if captured)", font=("Arial", 10), bootstyle="light")
-        self.image_label.pack(pady=15)
+        self.auth_progress = ttk.Progressbar(
+            self.auth_tab,
+            bootstyle="success-striped",
+            mode="determinate",
+            length=400
+        )
+        self.auth_progress.pack(pady=10)
+        self.auth_progress.pack_forget()
+
+        self.auth_status_label = ttk.Label(
+            self.auth_tab,
+            text="Authentication Status",
+            font=("Helvetica", 14, "bold"),
+            bootstyle="light"
+        )
+        self.auth_status_label.pack(pady=(10, 5))
+
+        self.auth_status_text = ScrolledText(
+            self.auth_tab,
+            height=10,
+            width=80,
+            font=("Consolas", 10),
+            wrap="word",
+            bootstyle="dark",
+            padding=10
+        )
+        self.auth_status_text.pack(pady=10)
+        self.auth_status_text.text.insert("end", "Click 'Start Authentication' to unlock.\n")
+        self.auth_status_text.text.bind("<Key>", lambda e: "break")
+
+        # Security tab content
+        self.photo_button = ttk.Button(
+            self.security_tab,
+            text=" View Intruder Photo",
+            command=self.view_intruder_photo,
+            bootstyle="warning-outline",
+            width=20,
+            compound="left"
+        )
+        self.photo_button.pack(pady=10)
+
+        self.image_label = ttk.Label(
+            self.security_tab,
+            text="No intruder photo available",
+            font=("Helvetica", 12),
+            bootstyle="light"
+        )
+        self.image_label.pack(pady=10)
+
+        # Status bar
+        self.status_bar = ttk.Label(
+            self.main_frame,
+            text="Ready",
+            bootstyle="inverse-dark",
+            padding=5
+        )
+        self.status_bar.pack(fill="x", side="bottom", pady=(10, 0))
 
         # Initialize variables
         self.running = False
         self.intruder_photo = None
 
-    def log_status(self, message):
-        """Update status text area with a new message."""
-        self.status_text.text.configure(state='normal')
-        self.status_text.text.insert("end", f"{datetime.now().strftime('%H:%M:%S')}: {message}\n")
-        self.status_text.text.see("end")
-        self.status_text.text.configure(state='disabled')
+    def log_status(self, tab, message):
+        """Update status text area for the specified tab."""
+        status_text = self.setup_status_text if tab == "setup" else self.auth_status_text
+        status_text.text.configure(state='normal')
+        timestamp = datetime.now().strftime('%H:%M:%S')
+        status_text.text.insert("end", f"[{timestamp}] {message}\n")
+        status_text.text.see("end")
+        status_text.text.configure(state='disabled')
+        self.status_bar.configure(text=message[:50] + "..." if len(message) > 50 else message)
         self.root.update()
 
     def save_encrypted_phrase(self, phrase):
@@ -91,7 +210,7 @@ class VoiceAuthApp:
                 encrypted = f.read()
             return cipher.decrypt(encrypted).decode().strip().lower()
         except Exception as e:
-            self.log_status(f"Error loading phrase: {e}")
+            self.log_status("auth", f"Error loading phrase: {e}")
             return None
 
     def extract_features(self, filename):
@@ -106,7 +225,7 @@ class VoiceAuthApp:
             mfccs = (mfccs - mfccs_min) / (mfccs_max - mfccs_min + 1e-8)  # Avoid division by zero
             return mfccs
         except Exception as e:
-            self.log_status(f"Error extracting features: {e}")
+            self.log_status("setup", f"Error extracting features: {e}")
             return None
 
     def average_features(self, file1, file2):
@@ -127,7 +246,7 @@ class VoiceAuthApp:
         """Save averaged voice features as WAV."""
         avg_feats = self.average_features(AUTHORIZED_VOICE1_FILE, AUTHORIZED_VOICE2_FILE)
         if avg_feats is None:
-            self.log_status("Error averaging voice features.")
+            self.log_status("setup", "Error averaging voice features.")
             return False
         # Inverse MFCC to audio (approximate)
         y_inv = librosa.feature.inverse.mfcc_to_audio(avg_feats.T, n_mels=13, sr=22050)
@@ -139,9 +258,9 @@ class VoiceAuthApp:
             os.remove(AUTHORIZED_VOICE2_FILE)
         return True
 
-    def record_audio(self, prompt, filename=None):
+    def record_audio(self, tab, prompt, filename=None):
         """Record audio and optionally save to file."""
-        self.log_status(prompt)
+        self.log_status(tab, prompt)
         recognizer = sr.Recognizer()
         with sr.Microphone() as source:
             recognizer.adjust_for_ambient_noise(source, duration=1)
@@ -152,18 +271,18 @@ class VoiceAuthApp:
                         f.write(audio.get_wav_data())
                 return audio
             except sr.WaitTimeoutError:
-                self.log_status("No audio detected. Try again.")
+                self.log_status(tab, "No audio detected. Try again.")
                 return None
             except Exception as e:
-                self.log_status(f"Error recording audio: {e}")
+                self.log_status(tab, f"Error recording audio: {e}")
                 return None
 
     def capture_intruder(self):
         """Capture intruder photo using webcam."""
-        self.log_status("Capturing intruder photo...")
+        self.log_status("auth", "Capturing intruder photo...")
         cam = cv2.VideoCapture(0)
         if not cam.isOpened():
-            self.log_status("Camera not available.")
+            self.log_status("auth", "Camera not available.")
             return
         for _ in range(10):
             cam.read()
@@ -171,22 +290,29 @@ class VoiceAuthApp:
         ret, frame = cam.read()
         if ret:
             cv2.imwrite(INTRUDER_IMAGE, frame)
-            self.log_status("Intruder photo saved.")
+            self.log_status("auth", "Intruder photo saved.")
+        else:
+            self.log_status("auth", "Failed to capture image.")
+        cam.release()
+
+    def view_intruder_photo(self):
+        """Display the intruder photo if available."""
+        if os.path.exists(INTRUDER_IMAGE):
             img = Image.open(INTRUDER_IMAGE)
-            img = img.resize((200, 150), Image.Resampling.LANCZOS)
+            img = img.resize((250, 200), Image.Resampling.LANCZOS)
             self.intruder_photo = ImageTk.PhotoImage(img)
             self.image_label.config(image=self.intruder_photo, text="")
         else:
-            self.log_status("Failed to capture image.")
-        cam.release()
+            self.image_label.config(image=None, text="No intruder photo available")
+            messagebox.showinfo("Info", "No intruder photo has been captured.")
 
     def match_voice(self):
         """Compare recorded voice with stored sample."""
         if not os.path.exists(AUTHORIZED_VOICE_FILE):
-            self.log_status("No authorized voice sample found. Run Setup first.")
+            self.log_status("auth", "No authorized voice sample found. Run Setup first.")
             return False
 
-        audio = self.record_audio("Recording voice for authentication...", "test_voice.wav")
+        audio = self.record_audio("auth", "Recording voice for authentication...", "test_voice.wav")
         if not audio:
             return False
 
@@ -194,112 +320,122 @@ class VoiceAuthApp:
         test_features = self.extract_features("test_voice.wav")
 
         if auth_features is None or test_features is None:
-            self.log_status("Error in feature extraction.")
+            self.log_status("auth", "Error in feature extraction.")
             if os.path.exists("test_voice.wav"):
                 os.remove("test_voice.wav")
             return False
 
         distance, _ = fastdtw(auth_features, test_features, dist=euclidean)
-        self.log_status(f"Voice Match Score: {distance:.2f}")
+        self.log_status("auth", f"Voice Match Score: {distance:.2f}")
         if distance >= 500:
-            self.log_status("Voice mismatch. Try speaking clearly, closer to the microphone.")
+            self.log_status("auth", "Voice mismatch. Try speaking clearly, closer to the microphone.")
         if os.path.exists("test_voice.wav"):
             os.remove("test_voice.wav")
         return distance < 500  # Relaxed threshold
 
     def verify_phrase(self):
         """Verify spoken phrase against stored phrase."""
-        audio = self.record_audio("Speak your unlock phrase...")
+        audio = self.record_audio("auth", "Speak your unlock phrase...")
         if not audio:
             return False
 
         try:
+            recognizer = sr.Recognizer()
             spoken_phrase = recognizer.recognize_google(audio).strip().lower()
             stored_phrase = self.load_encrypted_phrase()
             if stored_phrase is None:
                 return False
             similarity = fuzz.ratio(spoken_phrase, stored_phrase)
-            self.log_status(f"Phrase Similarity: {similarity}%")
+            self.log_status("auth", f"Phrase Similarity: {similarity}%")
             return similarity > 90
         except Exception as e:
-            self.log_status(f"Error recognizing phrase: {e}")
+            self.log_status("auth", f"Error recognizing phrase: {e}")
             return False
 
     def run_setup(self):
         """Perform setup process with progress bar."""
-        self.progress_bar.pack(pady=10)  # Show progress bar
-        self.progress_bar["value"] = 0
+        self.setup_progress.pack(pady=10)
+        self.setup_progress["value"] = 0
         self.root.update()
 
-        self.log_status("Starting setup...")
+        self.log_status("setup", "Starting setup...")
         # Record first voice sample
-        audio = self.record_audio("Recording first voice sample... Speak any sentence.", AUTHORIZED_VOICE1_FILE)
+        audio = self.record_audio("setup", "Recording first voice sample... Speak any sentence.", AUTHORIZED_VOICE1_FILE)
         if not audio:
-            self.log_status("Setup failed due to voice recording error.")
-            self.progress_bar.pack_forget()
+            self.log_status("setup", "Setup failed due to voice recording error.")
+            self.setup_progress.pack_forget()
             return
 
-        self.progress_bar["value"] = 25  # 25% complete
+        self.setup_progress["value"] = 25
         self.root.update()
 
         # Record second voice sample
-        audio = self.record_audio("Recording second voice sample... Speak another sentence.", AUTHORIZED_VOICE2_FILE)
+        audio = self.record_audio("setup", "Recording second voice sample... Speak another sentence.", AUTHORIZED_VOICE2_FILE)
         if not audio:
-            self.log_status("Setup failed due to voice recording error.")
-            self.progress_bar.pack_forget()
+            self.log_status("setup", "Setup failed due to voice recording error.")
+            self.setup_progress.pack_forget()
             return
 
-        self.progress_bar["value"] = 50  # 50% complete
+        self.setup_progress["value"] = 50
         self.root.update()
 
         # Average voice samples
         if not self.save_average_voice():
-            self.log_status("Setup failed due to voice processing error.")
-            self.progress_bar.pack_forget()
+            self.log_status("setup", "Setup failed due to voice processing error.")
+            self.setup_progress.pack_forget()
             return
 
-        self.progress_bar["value"] = 75  # 75% complete
+        self.setup_progress["value"] = 75
         self.root.update()
 
         # Record phrase
-        audio = self.record_audio("Speak your secret unlock phrase (e.g., 'Open my phone')...")
+        audio = self.record_audio("setup", "Speak your secret unlock phrase (e.g., 'Open my phone')...")
         if not audio:
-            self.log_status("Setup failed due to phrase recording error.")
-            self.progress_bar.pack_forget()
+            self.log_status("setup", "Setup failed due to phrase recording error.")
+            self.setup_progress.pack_forget()
             return
 
         try:
+            recognizer = sr.Recognizer()
             phrase = recognizer.recognize_google(audio)
             self.save_encrypted_phrase(phrase)
-            self.progress_bar["value"] = 100  # 100% complete
+            self.setup_progress["value"] = 100
             self.root.update()
-            time.sleep(0.5)  # Brief pause to show completion
-            self.log_status("Setup complete! Voice and phrase saved.")
+            time.sleep(0.5)
+            self.log_status("setup", "Setup complete! Voice and phrase saved.")
             messagebox.showinfo("Success", "Setup completed successfully!")
         except Exception as e:
-            self.log_status(f"Error saving phrase: {e}")
-            self.log_status("Setup failed.")
+            self.log_status("setup", f"Error saving phrase: {e}")
+            self.log_status("setup", "Setup failed.")
         finally:
-            self.progress_bar.pack_forget()  # Hide progress bar
+            self.setup_progress.pack_forget()
 
     def run_authentication(self):
         """Perform authentication with retries."""
+        self.auth_progress.pack(pady=10)
+        self.auth_progress["value"] = 0
+        self.root.update()
+
         max_attempts = 3
         for attempt in range(max_attempts):
-            self.log_status(f"Authentication Attempt {attempt + 1}/{max_attempts}")
+            self.log_status("auth", f"Authentication Attempt {attempt + 1}/{max_attempts}")
+            self.auth_progress["value"] = (attempt / max_attempts) * 100
+            self.root.update()
             voice_ok = self.match_voice()
             phrase_ok = self.verify_phrase()
             if voice_ok and phrase_ok:
-                self.log_status("Access Granted! Device unlocked.")
+                self.log_status("auth", "Access Granted! Device unlocked.")
                 logging.info(f"Authentication successful at {datetime.now()}")
                 messagebox.showinfo("Success", "Access Granted!")
+                self.auth_progress.pack_forget()
                 return
             else:
-                self.log_status("Authentication failed.")
-        self.log_status("Max attempts reached. Capturing intruder photo...")
+                self.log_status("auth", "Authentication failed.")
+        self.log_status("auth", "Max attempts reached. Capturing intruder photo...")
         self.capture_intruder()
         logging.info(f"Authentication failed at {datetime.now()}")
         messagebox.showwarning("Failed", "Authentication failed. Intruder photo captured.")
+        self.auth_progress.pack_forget()
 
     def start_setup(self):
         """Run setup in a separate thread."""
@@ -334,7 +470,6 @@ class VoiceAuthApp:
         self.running = False
 
 if __name__ == "__main__":
-    recognizer = sr.Recognizer()
     root = ttk.Window(themename="darkly")
     app = VoiceAuthApp(root)
     root.mainloop()
