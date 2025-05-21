@@ -36,7 +36,7 @@ class VoiceAuthApp:
         self.root.geometry("800x700")
         self.root.resizable(False, False)
 
-        # GUI Elements (Dark Theme)
+        # GUI Elements 
         self.label = ttk.Label(root, text="Voice Authentication System", font=("Arial", 18, "bold"), bootstyle="light")
         self.label.pack(pady=15)
 
@@ -44,7 +44,7 @@ class VoiceAuthApp:
                                       bootstyle="dark", padding=5)
         self.status_text.pack(pady=15)
         self.status_text.text.insert("end", "Welcome! Click 'Setup' to configure or 'Authenticate' to unlock.\n")
-        self.status_text.text.bind("<Key>", lambda e: "break")  # Prevent typing
+        self.status_text.text.bind("<Key>", lambda e: "break")
 
         self.progress_bar = ttk.Progressbar(root, bootstyle="primary", mode="determinate", length=300)
         self.progress_bar.pack(pady=10)
@@ -59,7 +59,6 @@ class VoiceAuthApp:
         self.image_label = ttk.Label(root, text="Intruder Photo (if captured)", font=("Arial", 10), bootstyle="light")
         self.image_label.pack(pady=15)
 
-        # Initialize variables
         self.running = False
         self.intruder_photo = None
 
@@ -115,7 +114,7 @@ class VoiceAuthApp:
         feats2 = self.extract_features(file2)
         if feats1 is None or feats2 is None:
             return None
-        # Pad shorter sequence
+       
         max_len = max(len(feats1), len(feats2))
         feats1 = np.pad(feats1, ((0, max_len - len(feats1)), (0, 0)), mode='mean')
         feats2 = np.pad(feats2, ((0, max_len - len(feats2)), (0, 0)), mode='mean')
